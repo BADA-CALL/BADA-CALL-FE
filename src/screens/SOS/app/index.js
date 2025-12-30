@@ -34,13 +34,11 @@ export default function Index() {
     return `${ampm} ${hours}시 ${minutes}분`;
   };
 
-  // 숫자와 소수점만 허용하는 함수
   const handleNumericInput = (text, setter) => {
     const cleaned = text.replace(/[^0-9.]/g, '');
     setter(cleaned);
   };
 
-  // 범위 확인 및 확인 버튼 핸들러
   const handleConfirm = () => {
     const sLat = parseFloat(startLat);
     const sLon = parseFloat(startLon);
@@ -185,6 +183,7 @@ export default function Index() {
         </View>
 
         <Modal transparent visible={modalVisible} animationType="fade">
+          {/* ... Modal 내용은 기존과 동일하므로 생략 (수정 없음) ... */}
           <View style={[styles.modalBg, isReporting && { backgroundColor: '#FFFFFF' }]}>
             <View style={[styles.modalContent, isReporting && styles.whiteFullSection]}>
               {!isReporting ? (
@@ -282,13 +281,16 @@ const styles = StyleSheet.create({
   userEmoji: { fontSize: 20 },
   main: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   
-  inputCard: { backgroundColor: '#fff', padding: 20, borderRadius: 15, width: '85%', marginBottom: 20, elevation: 5 },
-  inputTitle: { fontSize: 16, fontWeight: 'bold', marginBottom: 10, color: '#333' },
-  inputSubLabel: { fontSize: 11, color: '#666', marginBottom: 5, marginTop: 5 },
-  inputRow: { flexDirection: 'row', marginBottom: 5 },
-  textInput: { backgroundColor: '#f9f9f9', padding: 10, borderRadius: 8, borderWidth: 1, borderColor: '#eee', color: '#000' },
-  confirmBtn: { backgroundColor: '#2196F3', padding: 12, borderRadius: 8, alignItems: 'center', marginTop: 15 },
-  confirmBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
+  // 입력 카드 - 세로 여백 및 높이 축소
+  inputCard: { backgroundColor: '#fff', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 15, width: '85%', marginBottom: 15, elevation: 5 },
+  inputTitle: { fontSize: 15, fontWeight: 'bold', marginBottom: 8, color: '#333' },
+  inputSubLabel: { fontSize: 10, color: '#666', marginBottom: 3, marginTop: 4 },
+  inputRow: { flexDirection: 'row', marginBottom: 2 },
+  // 입력 필드 - padding 축소하여 세로 크기 줄임
+  textInput: { backgroundColor: '#f9f9f9', paddingVertical: 6, paddingHorizontal: 10, borderRadius: 8, borderWidth: 1, borderColor: '#eee', color: '#000', fontSize: 13 },
+  // 확인 버튼 - 크기 축소
+  confirmBtn: { backgroundColor: '#2196F3', paddingVertical: 10, borderRadius: 8, alignItems: 'center', marginTop: 10 },
+  confirmBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 15 },
 
   routeBox: { backgroundColor: '#fff', padding: 15, borderRadius: 12, width: '85%', marginBottom: 20, elevation: 3 },
   aiText: { fontSize: 14, color: '#E65100', fontWeight: 'bold', textAlign: 'center', marginBottom: 5 },
@@ -301,14 +303,14 @@ const styles = StyleSheet.create({
   
   mainTitle: { fontSize: 28, fontWeight: 'bold' },
   mainSubtitle: { fontSize: 16, color: '#666', marginTop: 10 },
-  sosOuter: { width: 180, height: 180, borderRadius: 90, backgroundColor: '#ccc', justifyContent: 'center', alignItems: 'center', marginTop: 30 },
+  sosOuter: { width: 180, height: 180, borderRadius: 90, backgroundColor: '#ccc', justifyContent: 'center', alignItems: 'center', marginTop: 25 },
   sosInner: { width: 160, height: 160, borderRadius: 80, backgroundColor: 'red', justifyContent: 'center', alignItems: 'center' },
   sosText: { color: 'white', fontSize: 40, fontWeight: 'bold' },
-  locationContainer: { marginTop: 25, alignItems: 'center' },
+  locationContainer: { marginTop: 20, alignItems: 'center' },
   addressText: { fontSize: 16, color: '#333', fontWeight: '500' },
   coordsText: { fontSize: 13, color: '#888', marginTop: 4 },
-  collisionTestBtn: { marginTop: 15, backgroundColor: '#FFF3E0', padding: 10, borderRadius: 15, borderWidth: 1, borderColor: '#FFB74D' },
-  collisionTestBtnText: { color: '#E65100', fontWeight: 'bold' },
+  collisionTestBtn: { marginTop: 12, backgroundColor: '#FFF3E0', padding: 8, borderRadius: 12, borderWidth: 1, borderColor: '#FFB74D' },
+  collisionTestBtnText: { color: '#E65100', fontWeight: 'bold', fontSize: 13 },
   bottomStatusWrapper: { flexDirection: 'row', justifyContent: 'center', paddingHorizontal: 20, marginBottom: 40 },
   statusCard: { width: 155, height: 80, backgroundColor: '#fff', borderRadius: 15, justifyContent: 'center', alignItems: 'center', elevation: 3 },
   statusLabel: { fontSize: 12, color: '#999', marginBottom: 6 },
