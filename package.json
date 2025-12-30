@@ -9,17 +9,21 @@
     "web": "expo start --web"
   },
   "dependencies": {
+    "axios": "^1.13.2",
     "expo": "~54.0.30",
     "expo-location": "~19.0.8",
+    "expo-secure-store": "^15.0.8",
     "expo-status-bar": "~3.0.9",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-native": "0.81.5",
+    "react-native-get-random-values": "~1.11.0",
     "react-native-maps": "1.20.1",
     "react-native-safe-area-context": "~5.6.0",
     "react-native-svg": "15.12.1",
     "react-native-web": "^0.21.2",
-    "styled-components": "^6.1.19"
+    "styled-components": "^6.1.19",
+    "uuid": "^13.0.0"
   },
   "private": true,
   "devDependencies": {
