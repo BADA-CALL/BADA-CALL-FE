@@ -1,23 +1,22 @@
 import styled from 'styled-components/native';
 
-export const Container = styled.View`
+export const Container = styled.ScrollView`
   flex: 1;
-  padding: 60px 28px 0;
+  padding: 24px;
   flex-direction: column;
-  gap: 40px;
 `;
 
 export const HeaderContainer = styled.View`
+  padding-top: 24px;
+  padding-bottom: 32px;
   width: 100%;
   flex-direction: row;
   align-items: center;
 `;
 
 export const HeaderTitle = styled.Text`
-  flex: 1;
   font-size: 20px;
   font-weight: 600;
-  text-align: center;
 `;
 
 export const FormContainer = styled.View`
@@ -54,6 +53,8 @@ export const FormInput = styled.TextInput`
 `;
 
 export const Button = styled.Pressable`
+  margin-top: 20px;
+  margin-bottom: 28px;
   width: 100%;
   padding: 16px;
   border-radius: 12px;
