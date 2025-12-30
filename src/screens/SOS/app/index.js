@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, Alert, Modal, Dimensions, TextInput } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, Alert, Modal, Dimensions } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import MapView, { PROVIDER_DEFAULT, Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
@@ -17,12 +17,6 @@ export default function Index() {
   
   const [userLocation, setUserLocation] = useState(null);
 
-  const [startLat, setStartLat] = useState('');
-  const [startLon, setStartLon] = useState('');
-  const [endLat, setEndLat] = useState('');
-  const [endLon, setEndLon] = useState('');
-  const [isCoordsConfirmed, setIsCoordsConfirmed] = useState(false);
-
   const currentCoords = "북위 35.1595° / 동경 129.1604°";
 
   const formatTime = () => {
@@ -32,32 +26,6 @@ export default function Index() {
     const ampm = hours >= 12 ? '오후' : '오전';
     hours = hours % 12 || 12; 
     return `${ampm} ${hours}시 ${minutes}분`;
-  };
-
-  const handleNumericInput = (text, setter) => {
-    const cleaned = text.replace(/[^0-9.]/g, '');
-    setter(cleaned);
-  };
-
-  const handleConfirm = () => {
-    const sLat = parseFloat(startLat);
-    const sLon = parseFloat(startLon);
-    const eLat = parseFloat(endLat);
-    const eLon = parseFloat(endLon);
-
-    const isLatValid = (lat) => lat >= 33 && lat <= 43;
-    const isLonValid = (lon) => lon >= 124 && lon <= 132;
-
-    if (!isLatValid(sLat) || !isLatValid(eLat)) {
-      Alert.alert("입력 오류", "위도는 33°에서 43° 사이여야 합니다.");
-      return;
-    }
-    if (!isLonValid(sLon) || !isLonValid(eLon)) {
-      Alert.alert("입력 오류", "경도는 124°에서 132° 사이여야 합니다.");
-      return;
-    }
-
-    setIsCoordsConfirmed(true);
   };
 
   useEffect(() => {
@@ -121,46 +89,13 @@ export default function Index() {
         </View>
 
         <View style={styles.main}>
-          {!isCoordsConfirmed ? (
-            <View style={styles.inputCard}>
-              <Text style={styles.inputTitle}>운행 경로 설정</Text>
-              
-              <Text style={styles.inputSubLabel}>출발지 (위도:33-43 / 경도:124-132)</Text>
-              <View style={styles.inputRow}>
-                <TextInput style={[styles.textInput, {flex: 1, marginRight: 5}]} placeholder="위도" value={startLat} onChangeText={(t) => handleNumericInput(t, setStartLat)} keyboardType="decimal-pad" />
-                <TextInput style={[styles.textInput, {flex: 1}]} placeholder="경도" value={startLon} onChangeText={(t) => handleNumericInput(t, setStartLon)} keyboardType="decimal-pad" />
-              </View>
-
-              <Text style={styles.inputSubLabel}>목적지 (위도:33-43 / 경도:124-132)</Text>
-              <View style={styles.inputRow}>
-                <TextInput style={[styles.textInput, {flex: 1, marginRight: 5}]} placeholder="위도" value={endLat} onChangeText={(t) => handleNumericInput(t, setEndLat)} keyboardType="decimal-pad" />
-                <TextInput style={[styles.textInput, {flex: 1}]} placeholder="경도" value={endLon} onChangeText={(t) => handleNumericInput(t, setEndLon)} keyboardType="decimal-pad" />
-              </View>
-
-              <TouchableOpacity style={styles.confirmBtn} onPress={handleConfirm}>
-                <Text style={styles.confirmBtnText}>확인</Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <View style={styles.routeBox}>
-              <Text style={styles.aiText}>AI가 분석한 예상 사고 경로를 확인 중입니다...</Text>
-              <View style={styles.routeDivider} />
-              <View style={styles.routeRow}>
-                <View style={styles.dotBlue} /><Text style={styles.routeLabel}>출발</Text>
-                <Text style={styles.routeValue}>{startLat}, {startLon}</Text>
-              </View>
-              <View style={styles.routeRow}>
-                <View style={styles.dotRed} /><Text style={styles.routeLabel}>도착</Text>
-                <Text style={styles.routeValue}>{endLat}, {endLon}</Text>
-              </View>
-            </View>
-          )}
-
           <Text style={styles.mainTitle}>구조가 필요하신가요?</Text>
           <Text style={styles.mainSubtitle}>버튼을 누르면 신고가 접수됩니다</Text>
+          
           <TouchableOpacity style={styles.sosOuter} onPress={handleSOS}>
             <View style={styles.sosInner}><Text style={styles.sosText}>SOS</Text></View>
           </TouchableOpacity>
+
           <View style={styles.locationContainer}>
             <Text style={styles.addressText}>📍 부산 강서구</Text>
             <Text style={styles.coordsText}>{currentCoords}</Text>
@@ -183,7 +118,6 @@ export default function Index() {
         </View>
 
         <Modal transparent visible={modalVisible} animationType="fade">
-          {/* ... Modal 내용은 기존과 동일하므로 생략 (수정 없음) ... */}
           <View style={[styles.modalBg, isReporting && { backgroundColor: '#FFFFFF' }]}>
             <View style={[styles.modalContent, isReporting && styles.whiteFullSection]}>
               {!isReporting ? (
@@ -281,40 +215,22 @@ const styles = StyleSheet.create({
   userEmoji: { fontSize: 20 },
   main: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   
-  // 입력 카드 - 세로 여백 및 높이 축소
-  inputCard: { backgroundColor: '#fff', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 15, width: '85%', marginBottom: 15, elevation: 5 },
-  inputTitle: { fontSize: 15, fontWeight: 'bold', marginBottom: 8, color: '#333' },
-  inputSubLabel: { fontSize: 10, color: '#666', marginBottom: 3, marginTop: 4 },
-  inputRow: { flexDirection: 'row', marginBottom: 2 },
-  // 입력 필드 - padding 축소하여 세로 크기 줄임
-  textInput: { backgroundColor: '#f9f9f9', paddingVertical: 6, paddingHorizontal: 10, borderRadius: 8, borderWidth: 1, borderColor: '#eee', color: '#000', fontSize: 13 },
-  // 확인 버튼 - 크기 축소
-  confirmBtn: { backgroundColor: '#2196F3', paddingVertical: 10, borderRadius: 8, alignItems: 'center', marginTop: 10 },
-  confirmBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 15 },
-
-  routeBox: { backgroundColor: '#fff', padding: 15, borderRadius: 12, width: '85%', marginBottom: 20, elevation: 3 },
-  aiText: { fontSize: 14, color: '#E65100', fontWeight: 'bold', textAlign: 'center', marginBottom: 5 },
-  routeRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 2 },
-  dotBlue: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#2196F3', marginRight: 10 },
-  dotRed: { width: 8, height: 8, borderRadius: 4, backgroundColor: 'red', marginRight: 10 },
-  routeLabel: { fontSize: 12, color: '#888', width: 35 },
-  routeValue: { fontSize: 13, fontWeight: '500', color: '#333' },
-  routeDivider: { height: 1, backgroundColor: '#f0f0f0', marginVertical: 8 },
-  
   mainTitle: { fontSize: 28, fontWeight: 'bold' },
   mainSubtitle: { fontSize: 16, color: '#666', marginTop: 10 },
-  sosOuter: { width: 180, height: 180, borderRadius: 90, backgroundColor: '#ccc', justifyContent: 'center', alignItems: 'center', marginTop: 25 },
+  sosOuter: { width: 180, height: 180, borderRadius: 90, backgroundColor: '#ccc', justifyContent: 'center', alignItems: 'center', marginTop: 40 },
   sosInner: { width: 160, height: 160, borderRadius: 80, backgroundColor: 'red', justifyContent: 'center', alignItems: 'center' },
   sosText: { color: 'white', fontSize: 40, fontWeight: 'bold' },
-  locationContainer: { marginTop: 20, alignItems: 'center' },
+  locationContainer: { marginTop: 30, alignItems: 'center' },
   addressText: { fontSize: 16, color: '#333', fontWeight: '500' },
   coordsText: { fontSize: 13, color: '#888', marginTop: 4 },
-  collisionTestBtn: { marginTop: 12, backgroundColor: '#FFF3E0', padding: 8, borderRadius: 12, borderWidth: 1, borderColor: '#FFB74D' },
-  collisionTestBtnText: { color: '#E65100', fontWeight: 'bold', fontSize: 13 },
+  collisionTestBtn: { marginTop: 20, backgroundColor: '#FFF3E0', paddingHorizontal: 15, paddingVertical: 10, borderRadius: 15, borderWidth: 1, borderColor: '#FFB74D' },
+  collisionTestBtnText: { color: '#E65100', fontWeight: 'bold' },
+  
   bottomStatusWrapper: { flexDirection: 'row', justifyContent: 'center', paddingHorizontal: 20, marginBottom: 40 },
   statusCard: { width: 155, height: 80, backgroundColor: '#fff', borderRadius: 15, justifyContent: 'center', alignItems: 'center', elevation: 3 },
   statusLabel: { fontSize: 12, color: '#999', marginBottom: 6 },
   statusValue: { fontSize: 16, fontWeight: 'bold' },
+  
   modalBg: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)' },
   modalContent: { flex: 1 },
   whiteFullSection: { backgroundColor: '#FFFFFF' },
