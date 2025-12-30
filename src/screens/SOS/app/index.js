@@ -6,7 +6,7 @@ import * as Location from 'expo-location';
 
 const { height } = Dimensions.get('window');
 
-export default function Index() {
+export default function Index({ goToMyPage }) {
   const [modalVisible, setModalVisible] = useState(false);
   const [countdown, setCountdown] = useState(10);
   const [isReporting, setIsReporting] = useState(false);
@@ -83,7 +83,7 @@ export default function Index() {
       <SafeAreaView style={styles.container}>
         <View style={styles.topHeader}>
           <View style={styles.brandArea}><Text style={styles.brandText}>▶ 바다콜</Text></View>
-          <TouchableOpacity style={styles.userButton} onPress={() => Alert.alert('알림', '유저 정보')}>
+          <TouchableOpacity style={styles.userButton} onPress={goToMyPage || (() => Alert.alert('알림', '유저 정보'))}>
             <Text style={styles.userEmoji}>👤</Text>
           </TouchableOpacity>
         </View>
