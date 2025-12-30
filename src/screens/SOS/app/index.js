@@ -3,6 +3,8 @@ import { StyleSheet, View, Text, TouchableOpacity, Alert, Modal, Dimensions } fr
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import MapView, { PROVIDER_DEFAULT, Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
+import { sendEmergencyReport, updateLocation } from '../../../api/userApi';
+import { getDeviceId } from '../../../utils/deviceManager';
 
 const { height } = Dimensions.get('window');
 
@@ -39,9 +41,60 @@ export default function Index({ goToMyPage }) {
           latitudeDelta: 0.01,
           longitudeDelta: 0.01,
         });
+
+        // 초기 위치 서버에 전송
+        await sendLocationUpdate(location.coords);
+
+        // 위치 추적 시작 (10분마다 업데이트로 주기 늘림)
+        const locationSubscription = await Location.watchPositionAsync(
+          {
+            accuracy: Location.Accuracy.Balanced,
+            timeInterval: 600000, // 10분 (600초)
+            distanceInterval: 200, // 200m 이동시 업데이트
+          },
+          async (newLocation) => {
+            console.log('위치 변경됨:', newLocation.coords);
+            setUserLocation({
+              latitude: newLocation.coords.latitude,
+              longitude: newLocation.coords.longitude,
+              latitudeDelta: 0.01,
+              longitudeDelta: 0.01,
+            });
+
+            // 새 위치 서버에 전송 (에러가 있어도 조용히 처리)
+            await sendLocationUpdate(newLocation.coords);
+          }
+        );
+
+        return () => locationSubscription?.remove();
       }
     })();
   }, []);
+
+  // 위치 업데이트 함수
+  const sendLocationUpdate = async (coords) => {
+    try {
+      const deviceId = await getDeviceId();
+      const locationData = {
+        device_id: deviceId,
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+        accuracy: coords.accuracy || 0,
+        altitude: coords.altitude || 0,
+        speed: coords.speed || 0,
+        heading: coords.heading || 0,
+        timestamp: new Date().toISOString()
+      };
+
+      console.log('위치 업데이트 전송:', locationData);
+
+      const response = await updateLocation(locationData);
+      console.log('위치 업데이트 성공:', response);
+    } catch (error) {
+      console.error('위치 업데이트 실패:', error);
+      // 위치 업데이트 실패는 사용자에게 알리지 않음 (백그라운드 작업)
+    }
+  };
 
   useEffect(() => {
     let timer;
@@ -53,11 +106,54 @@ export default function Index({ goToMyPage }) {
     return () => clearInterval(timer);
   }, [modalVisible, countdown, isReporting]);
 
-  const startReporting = () => {
-    setReportTime(formatTime());
-    setIsReporting(true);
-    setIsDispatching(false);
-    setTimeout(() => setIsDispatching(true), 3000);
+  const startReporting = async () => {
+    try {
+      setReportTime(formatTime());
+      setIsReporting(true);
+      setIsDispatching(false);
+
+      console.log('긴급 신고 시작');
+
+      // 현재 위치 정보 가져오기
+      const location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High,
+      });
+
+      const deviceId = await getDeviceId();
+
+      // 긴급 신고 API 호출 (업데이트된 API 스펙에 맞게 수정)
+      const reportData = {
+        device_id: deviceId,
+        type: 'manual',
+        emergency_type: isManualSOS ? 'other' : 'collision',
+        location_latitude: location.coords.latitude,
+        location_longitude: location.coords.longitude,
+        timestamp: new Date().toISOString(),
+        description: isManualSOS
+          ? '사용자가 수동으로 긴급 신고를 요청했습니다.'
+          : '충돌이 감지되어 자동으로 긴급 신고가 발생했습니다.'
+      };
+
+      console.log('긴급 신고 데이터 전송:', reportData);
+
+      const response = await sendEmergencyReport(reportData);
+      console.log('긴급 신고 성공:', response);
+
+      // 3초 후 구조대 출동 표시
+      setTimeout(() => setIsDispatching(true), 3000);
+
+    } catch (error) {
+      console.error('긴급 신고 실패:', error);
+      Alert.alert(
+        '신고 오류',
+        '신고 전송에 실패했습니다. 네트워크를 확인하고 다시 시도하거나 직접 112에 신고해주세요.',
+        [
+          { text: '112 연결', onPress: () => {/* 112 연결 로직 */} },
+          { text: '다시 시도', onPress: startReporting },
+          { text: '취소', style: 'cancel' }
+        ]
+      );
+    }
   };
 
   const simulateCollision = () => {

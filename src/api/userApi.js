@@ -120,10 +120,15 @@ export const updateProfileByDeviceId = async (deviceId, profileData) => {
 // 긴급 신고 API
 export const sendEmergencyReport = async (reportData) => {
   try {
+    console.log('긴급 신고 API 호출');
+    console.log('긴급 신고 데이터:', JSON.stringify(reportData, null, 2));
+
     const response = await apiClient.post('/reports/emergency', reportData);
+    console.log('긴급 신고 API 응답:', response.data);
     return response.data;
   } catch (error) {
     console.error('긴급 신고 실패:', error);
+    console.error('에러 상세:', error.response?.data || error.message);
     throw error;
   }
 };
@@ -131,10 +136,15 @@ export const sendEmergencyReport = async (reportData) => {
 // 위치 업데이트 API
 export const updateLocation = async (locationData) => {
   try {
+    console.log('위치 업데이트 API 호출');
+    console.log('위치 데이터:', JSON.stringify(locationData, null, 2));
+
     const response = await apiClient.post('/location/update', locationData);
+    console.log('위치 업데이트 API 응답:', response.data);
     return response.data;
   } catch (error) {
     console.error('위치 업데이트 실패:', error);
+    console.error('에러 상세:', error.response?.data || error.message);
     throw error;
   }
 };
