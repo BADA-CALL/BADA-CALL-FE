@@ -125,7 +125,7 @@ export default function Index() {
         <View style={styles.main}>
           {!isCoordsConfirmed ? (
             <View style={styles.inputCard}>
-              <Text style={styles.inputTitle}>운행 경로 설정 (범위 제한)</Text>
+              <Text style={styles.inputTitle}>운행 경로 설정</Text>
               
               <Text style={styles.inputSubLabel}>출발지 (위도:33-43 / 경도:124-132)</Text>
               <View style={styles.inputRow}>
