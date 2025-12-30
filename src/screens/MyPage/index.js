@@ -1,4 +1,4 @@
-import * as MyPageStyled from '../styles/myPage';
+import * as MyPageStyled from './styles';
 import { LeftArrowIcon } from '../../assets/icons';
 import { useState } from 'react';
 
@@ -14,10 +14,12 @@ const Input = ({ label, placeholder, ...props }) => {
   );
 };
 
-const Header = () => {
+const Header = ({ goBack }) => {
   return (
     <MyPageStyled.HeaderContainer>
-      <LeftArrowIcon size="32" />
+      <MyPageStyled.BackButton onPress={goBack}>
+        <LeftArrowIcon size="32" />
+      </MyPageStyled.BackButton>
       <MyPageStyled.HeaderTitle> 내정보 </MyPageStyled.HeaderTitle>
     </MyPageStyled.HeaderContainer>
   );
@@ -85,10 +87,10 @@ const Form = () => {
   );
 };
 
-const MyPage = () => {
+const MyPage = ({ goBack }) => {
   return (
     <MyPageStyled.Container>
-      <Header />
+      <Header goBack={goBack} />
       <Form />
     </MyPageStyled.Container>
   );

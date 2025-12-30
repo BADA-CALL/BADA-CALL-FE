@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, Alert, Modal } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
-export default function Index() {
+export default function Index({ goToMyPage }) {
   const [modalVisible, setModalVisible] = useState(false);
   const [countdown, setCountdown] = useState(10);
   const [isReporting, setIsReporting] = useState(false);
@@ -68,7 +68,7 @@ export default function Index() {
         {/* 헤더 및 메인 화면 생략 (기존과 동일) */}
         <View style={styles.topHeader}>
           <View style={styles.brandArea}><Text style={styles.brandText}>▶ 바다콜</Text></View>
-          <TouchableOpacity style={styles.userButton} onPress={() => Alert.alert('알림', '유저 정보')}>
+          <TouchableOpacity style={styles.userButton} onPress={goToMyPage || (() => Alert.alert('알림', '유저 정보'))}>
             <Text style={styles.userEmoji}>👤</Text>
           </TouchableOpacity>
         </View>

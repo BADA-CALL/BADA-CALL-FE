@@ -14,6 +14,11 @@ export const HeaderContainer = styled.View`
   align-items: center;
 `;
 
+export const BackButton = styled.TouchableOpacity`
+  padding: 8px;
+  margin-right: 12px;
+`;
+
 export const HeaderTitle = styled.Text`
   font-size: 20px;
   font-weight: 600;
