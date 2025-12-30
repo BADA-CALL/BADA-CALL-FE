@@ -11,71 +11,10 @@ export default function Index() {
   const [isCollisionDetected, setIsCollisionDetected] = useState(false);
   const [isManualSOS, setIsManualSOS] = useState(false);
 
-  // 현재 상태 데이터
+  const connectionStatus = "높음";
   const currentAddress = "부산 강서구";
-  const lat = 35.1595;
-  const lon = 129.1604;
+  const currentCoords = "북위 35.1595° / 동경 129.1604°";
   const accidentProbability = "15%"; 
-
-  // --- 1. [POST] 실시간 위치 업데이트 API ---
-  const updateMyLocation = async () => {
-    try {
-      const response = await fetch('https://bada-call-be.onrender.com/location/update', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          latitude: lat,
-          longitude: lon,
-          speed: 5.5,    // 테스트용 속도
-          heading: 120.0, // 테스트용 방향
-          accuracy: 10.0
-        }),
-      });
-      console.log("위치 업데이트 상태:", response.status);
-    } catch (error) {
-      console.error("위치 업데이트 실패:", error);
-    }
-  };
-
-  // --- 2. [POST] 사고 신고 생성 API ---
-  const sendReportToServer = async (type) => {
-    try {
-      const response = await fetch('https://bada-call-be.onrender.com/reports/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: type, // 'manual' 또는 'auto_detection'
-          location_latitude: lat,
-          location_longitude: lon,
-          location_address: currentAddress,
-          accident_probability: 0.15,
-          description: type === 'manual' ? "사용자 수동 SOS 발신" : "시스템 자동 충돌 감지"
-        }),
-      });
-      const data = await response.json();
-      console.log("신고 서버 전송 완료:", data);
-    } catch (error) {
-      console.error("신고 전송 실패:", error);
-    }
-  };
-
-  // 앱 실행 시 & 주기적 위치 업데이트 (5초마다)
-  useEffect(() => {
-    updateMyLocation(); // 첫 실행
-    const locationInterval = setInterval(updateMyLocation, 5000); 
-    return () => clearInterval(locationInterval);
-  }, []);
-
-  // 카운트다운 타이머 로직
-  useEffect(() => {
-    let timer;
-    if (modalVisible && countdown > 0 && !isReporting) {
-      timer = setInterval(() => setCountdown((prev) => prev - 1), 1000);
-    } else if (countdown === 0 && !isReporting) {
-      startReporting();
-    }
-    return () => clearInterval(timer);
-  }, [modalVisible, countdown, isReporting]);
 
   const formatTime = () => {
     const now = new Date();
@@ -86,15 +25,20 @@ export default function Index() {
     return `${ampm} ${hours}시 ${minutes}분`;
   };
 
+  useEffect(() => {
+    let timer;
+    if (modalVisible && countdown > 0 && !isReporting) {
+      timer = setInterval(() => setCountdown((prev) => prev - 1), 1000);
+    } else if (countdown === 0 && !isReporting) {
+      startReporting();
+    }
+    return () => clearInterval(timer);
+  }, [modalVisible, countdown, isReporting]);
+
   const startReporting = () => {
     setReportTime(formatTime());
     setIsReporting(true);
     setIsDispatching(false);
-
-    // API 호출: 신고 생성
-    const reportType = isManualSOS ? 'manual' : 'auto_detection';
-    sendReportToServer(reportType);
-
     setTimeout(() => {
       setIsDispatching(true);
     }, 3000);
@@ -121,6 +65,7 @@ export default function Index() {
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
+        {/* 헤더 및 메인 화면 생략 (기존과 동일) */}
         <View style={styles.topHeader}>
           <View style={styles.brandArea}><Text style={styles.brandText}>▶ 바다콜</Text></View>
           <TouchableOpacity style={styles.userButton} onPress={() => Alert.alert('알림', '유저 정보')}>
@@ -141,7 +86,7 @@ export default function Index() {
           </TouchableOpacity>
           <View style={styles.locationContainer}>
             <Text style={styles.addressText}>📍 {currentAddress}</Text>
-            <Text style={styles.coordsText}>북위 {lat}° / 동경 {lon}°</Text>
+            <Text style={styles.coordsText}>{currentCoords}</Text>
             <TouchableOpacity style={styles.collisionTestBtn} onPress={simulateCollision}>
               <Text style={styles.collisionTestBtnText}>⚠️ 충돌 감지 테스트</Text>
             </TouchableOpacity>
@@ -152,7 +97,7 @@ export default function Index() {
           <View style={styles.statusCard}><Text style={styles.statusLabel}>현재 위치</Text><Text style={styles.statusValue}>부산 강서구</Text></View>
           <View style={{ width: 15 }} />
           <View style={styles.statusCard}><Text style={styles.statusLabel}>연결 상태</Text>
-            <Text style={[styles.statusValue, { color: '#4CAF50' }]}>높음</Text>
+            <Text style={[styles.statusValue, { color: '#4CAF50' }]}>{connectionStatus}</Text>
           </View>
         </View>
 
@@ -168,13 +113,24 @@ export default function Index() {
                     <Text style={styles.policeLine}>{countdown}초 뒤에 경찰에게 긴급 구조 요청이 발신됩니다.</Text>
                   </View>
                 </View>
+              ) : isDispatching ? (
+                <View style={styles.reportingWrapper}>
+                  <View style={styles.recordingRow}>
+                    <View style={styles.greenDot} /><Text style={styles.recordingText}>음성 녹화 중</Text>
+                  </View>
+                  <Text style={styles.dispatchingTitle}>구조대가 출동하고 있습니다</Text>
+                  <Text style={styles.dispatchingSubtitle}>구조대가 약 11분 후에 도착합니다</Text>
+                </View>
               ) : (
                 <View style={styles.reportingWrapper}>
                   <View style={styles.recordingRow}>
                     <View style={styles.greenDot} /><Text style={styles.recordingText}>음성 녹화 중</Text>
                   </View>
-                  <Text style={styles.dispatchingTitle}>{isDispatching ? "구조대가 출동하고 있습니다" : "신고 전송 중..."}</Text>
-                  <Text style={styles.dispatchingSubtitle}>{isDispatching ? "구조대가 약 11분 후에 도착합니다" : "통신이 안정되면 신고가 발송됩니다."}</Text>
+                  <Text style={styles.sendingTitle}>신고 전송 중...</Text>
+                  <View style={styles.infoBoxLeft}>
+                    <Text style={styles.infoTextLeft}>신고를 접수하고 있습니다.</Text>
+                    <Text style={styles.infoTextLeft}>통신이 안정되면 신고가 발송됩니다.</Text>
+                  </View>
                 </View>
               )}
             </View>
@@ -190,6 +146,7 @@ export default function Index() {
                   </TouchableOpacity>
                 </View>
               ) : (
+                /* 신고 후 제어 패널 - 출동 중일 때도 버튼 유지됨 */
                 <View style={[styles.reportControlPanelFloating, { marginBottom: 20 }]}>
                   <View style={styles.timeVerticalContainer}>
                     <View style={styles.timeWhiteBox}>
@@ -201,6 +158,8 @@ export default function Index() {
                       <Text style={styles.timeValueGray}>{isDispatching ? "방금 전" : "신고 접수 중..."}</Text>
                     </View>
                   </View>
+                  
+                  {/* 버튼 영역 (항상 노출되도록 조건 삭제) */}
                   <View style={styles.buttonRow}>
                     <TouchableOpacity style={styles.emergencyCallBtn} onPress={() => Alert.alert('112 연결')}>
                       <Text style={styles.emergencyCallText}>긴급전화</Text>
@@ -219,6 +178,7 @@ export default function Index() {
   );
 }
 
+// 스타일 시트는 동일하므로 생략
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f2f2f2' },
   topHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 10, height: 60 },
@@ -248,7 +208,7 @@ const styles = StyleSheet.create({
   modalCenterArea: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   whiteFullSection: { backgroundColor: '#FFFFFF' },
   modalTitle: { color: 'white', fontSize: 30, fontWeight: 'bold', marginBottom: 35, textAlign: 'center' },
-  countCircle: { width: 140, height: 140, borderRadius: 70, backgroundColor: 'red', justifyContent: 'cgenter', alignItems: 'center', marginBottom: 35 },
+  countCircle: { width: 140, height: 140, borderRadius: 70, backgroundColor: 'red', justifyContent: 'center', alignItems: 'center', marginBottom: 35 },
   countNum: { color: 'white', fontSize: 60, fontWeight: 'bold' },
   policeInfoBox: { alignItems: 'center' },
   policeLine: { color: 'white', fontSize: 19, fontWeight: '600', lineHeight: 32, textAlign: 'center' },
@@ -256,8 +216,11 @@ const styles = StyleSheet.create({
   recordingRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 15 },
   greenDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#4CAF50', marginRight: 8 },
   recordingText: { color: '#888', fontSize: 16 },
+  sendingTitle: { fontSize: 34, fontWeight: 'bold', color: '#000', marginBottom: 15 },
   dispatchingTitle: { fontSize: 32, fontWeight: 'bold', color: '#000', marginBottom: 12, lineHeight: 42 },
   dispatchingSubtitle: { fontSize: 18, color: '#888888', fontWeight: '500' },
+  infoBoxLeft: { marginBottom: 10 },
+  infoTextLeft: { color: '#444', fontSize: 15, lineHeight: 22 },
   floatingBottomWrapper: { flex: 0.3, justifyContent: 'flex-end', alignItems: 'center', paddingBottom: 30 },
   reportControlPanelFloating: { 
     backgroundColor: '#fff', borderRadius: 25, padding: 20, width: '90%', elevation: 10, borderWidth: 1, borderColor: '#F0F0F0'
