@@ -17,5 +17,8 @@
     "styled-components": "^6.1.19",
     "react-native-svg": "15.12.1"
   },
-  "private": true
+  "private": true,
+  "devDependencies": {
+    "@types/react": "~19.1.10"
+  }
 }
