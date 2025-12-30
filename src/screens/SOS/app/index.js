@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, Alert, Modal, Dimensions } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, Alert, Modal, Dimensions, TextInput } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import MapView, { PROVIDER_DEFAULT, Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
@@ -17,6 +17,12 @@ export default function Index() {
   
   const [userLocation, setUserLocation] = useState(null);
 
+  const [startLat, setStartLat] = useState('');
+  const [startLon, setStartLon] = useState('');
+  const [endLat, setEndLat] = useState('');
+  const [endLon, setEndLon] = useState('');
+  const [isCoordsConfirmed, setIsCoordsConfirmed] = useState(false);
+
   const currentCoords = "북위 35.1595° / 동경 129.1604°";
 
   const formatTime = () => {
@@ -26,6 +32,34 @@ export default function Index() {
     const ampm = hours >= 12 ? '오후' : '오전';
     hours = hours % 12 || 12; 
     return `${ampm} ${hours}시 ${minutes}분`;
+  };
+
+  // 숫자와 소수점만 허용하는 함수
+  const handleNumericInput = (text, setter) => {
+    const cleaned = text.replace(/[^0-9.]/g, '');
+    setter(cleaned);
+  };
+
+  // 범위 확인 및 확인 버튼 핸들러
+  const handleConfirm = () => {
+    const sLat = parseFloat(startLat);
+    const sLon = parseFloat(startLon);
+    const eLat = parseFloat(endLat);
+    const eLon = parseFloat(endLon);
+
+    const isLatValid = (lat) => lat >= 33 && lat <= 43;
+    const isLonValid = (lon) => lon >= 124 && lon <= 132;
+
+    if (!isLatValid(sLat) || !isLatValid(eLat)) {
+      Alert.alert("입력 오류", "위도는 33°에서 43° 사이여야 합니다.");
+      return;
+    }
+    if (!isLonValid(sLon) || !isLonValid(eLon)) {
+      Alert.alert("입력 오류", "경도는 124°에서 132° 사이여야 합니다.");
+      return;
+    }
+
+    setIsCoordsConfirmed(true);
   };
 
   useEffect(() => {
@@ -89,9 +123,41 @@ export default function Index() {
         </View>
 
         <View style={styles.main}>
-          <View style={styles.probabilityBox}>
-            <Text style={styles.probabilityText}>AI 분석 사고 확률... <Text style={styles.probabilityValue}>15%</Text></Text>
-          </View>
+          {!isCoordsConfirmed ? (
+            <View style={styles.inputCard}>
+              <Text style={styles.inputTitle}>운행 경로 설정 (범위 제한)</Text>
+              
+              <Text style={styles.inputSubLabel}>출발지 (위도:33-43 / 경도:124-132)</Text>
+              <View style={styles.inputRow}>
+                <TextInput style={[styles.textInput, {flex: 1, marginRight: 5}]} placeholder="위도" value={startLat} onChangeText={(t) => handleNumericInput(t, setStartLat)} keyboardType="decimal-pad" />
+                <TextInput style={[styles.textInput, {flex: 1}]} placeholder="경도" value={startLon} onChangeText={(t) => handleNumericInput(t, setStartLon)} keyboardType="decimal-pad" />
+              </View>
+
+              <Text style={styles.inputSubLabel}>목적지 (위도:33-43 / 경도:124-132)</Text>
+              <View style={styles.inputRow}>
+                <TextInput style={[styles.textInput, {flex: 1, marginRight: 5}]} placeholder="위도" value={endLat} onChangeText={(t) => handleNumericInput(t, setEndLat)} keyboardType="decimal-pad" />
+                <TextInput style={[styles.textInput, {flex: 1}]} placeholder="경도" value={endLon} onChangeText={(t) => handleNumericInput(t, setEndLon)} keyboardType="decimal-pad" />
+              </View>
+
+              <TouchableOpacity style={styles.confirmBtn} onPress={handleConfirm}>
+                <Text style={styles.confirmBtnText}>확인</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={styles.routeBox}>
+              <Text style={styles.aiText}>AI가 분석한 예상 사고 경로를 확인 중입니다...</Text>
+              <View style={styles.routeDivider} />
+              <View style={styles.routeRow}>
+                <View style={styles.dotBlue} /><Text style={styles.routeLabel}>출발</Text>
+                <Text style={styles.routeValue}>{startLat}, {startLon}</Text>
+              </View>
+              <View style={styles.routeRow}>
+                <View style={styles.dotRed} /><Text style={styles.routeLabel}>도착</Text>
+                <Text style={styles.routeValue}>{endLat}, {endLon}</Text>
+              </View>
+            </View>
+          )}
+
           <Text style={styles.mainTitle}>구조가 필요하신가요?</Text>
           <Text style={styles.mainSubtitle}>버튼을 누르면 신고가 접수됩니다</Text>
           <TouchableOpacity style={styles.sosOuter} onPress={handleSOS}>
@@ -143,7 +209,6 @@ export default function Index() {
                     <>
                       <Text style={styles.dispatchingTitle}>신고 전송 중...</Text>
                       <View style={styles.infoBoxLeft}>
-                        {/* 요청하신 문구로 수정 완료 */}
                         <Text style={styles.infoTextLeft}>신고를 접수하고 있습니다. 통신이 안정되면 신고가 발송됩니다.</Text>
                       </View>
                     </>
@@ -216,11 +281,27 @@ const styles = StyleSheet.create({
   userButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#fff', justifyContent: 'center', alignItems: 'center' },
   userEmoji: { fontSize: 20 },
   main: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  probabilityBox: { backgroundColor: '#fff', padding: 12, borderRadius: 10, marginBottom: 10 },
-  probabilityValue: { fontWeight: 'bold', color: 'red' },
+  
+  inputCard: { backgroundColor: '#fff', padding: 20, borderRadius: 15, width: '85%', marginBottom: 20, elevation: 5 },
+  inputTitle: { fontSize: 16, fontWeight: 'bold', marginBottom: 10, color: '#333' },
+  inputSubLabel: { fontSize: 11, color: '#666', marginBottom: 5, marginTop: 5 },
+  inputRow: { flexDirection: 'row', marginBottom: 5 },
+  textInput: { backgroundColor: '#f9f9f9', padding: 10, borderRadius: 8, borderWidth: 1, borderColor: '#eee', color: '#000' },
+  confirmBtn: { backgroundColor: '#2196F3', padding: 12, borderRadius: 8, alignItems: 'center', marginTop: 15 },
+  confirmBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
+
+  routeBox: { backgroundColor: '#fff', padding: 15, borderRadius: 12, width: '85%', marginBottom: 20, elevation: 3 },
+  aiText: { fontSize: 14, color: '#E65100', fontWeight: 'bold', textAlign: 'center', marginBottom: 5 },
+  routeRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 2 },
+  dotBlue: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#2196F3', marginRight: 10 },
+  dotRed: { width: 8, height: 8, borderRadius: 4, backgroundColor: 'red', marginRight: 10 },
+  routeLabel: { fontSize: 12, color: '#888', width: 35 },
+  routeValue: { fontSize: 13, fontWeight: '500', color: '#333' },
+  routeDivider: { height: 1, backgroundColor: '#f0f0f0', marginVertical: 8 },
+  
   mainTitle: { fontSize: 28, fontWeight: 'bold' },
   mainSubtitle: { fontSize: 16, color: '#666', marginTop: 10 },
-  sosOuter: { width: 180, height: 180, borderRadius: 90, backgroundColor: '#ccc', justifyContent: 'center', alignItems: 'center', marginTop: 40 },
+  sosOuter: { width: 180, height: 180, borderRadius: 90, backgroundColor: '#ccc', justifyContent: 'center', alignItems: 'center', marginTop: 30 },
   sosInner: { width: 160, height: 160, borderRadius: 80, backgroundColor: 'red', justifyContent: 'center', alignItems: 'center' },
   sosText: { color: 'white', fontSize: 40, fontWeight: 'bold' },
   locationContainer: { marginTop: 25, alignItems: 'center' },
